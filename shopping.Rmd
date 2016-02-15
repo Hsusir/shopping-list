@@ -1,0 +1,53 @@
+---
+title: "購物產品關聯分析"
+author: "許sir"
+
+---
+
+### **資料說明**
+#### 1.本單元主題僅在介紹購物籃關聯分析
+#### 2.資料集，共有786 records 15 fields
+
+### **[設定所需的函式庫(libraries)以及載入資料]**
+```{r message=FALSE, warning=FALSE, results='hide'}
+setwd("/home/m600/Working Area/Rdata Practice/Customer Course/shopping list")
+
+library(arules)
+shopping=read.table("./Shopping.txt",header=T, sep=",")
+```
+
+### **[Part 1].Data-ETL**
+
+#### **1-1.取得資料集的概況**
+```{r message=FALSE, warning=FALSE}
+head(shopping)
+shopping=shopping[,1:10]
+shopping=na.exclude(shopping)
+
+```
+
+- 全部總共786筆資料
+- 買Milk和Frozen Food的人是85筆
+- 買Bakery goods的人是337筆
+- 買Milk和Frozen Food而且買Bakery goods的人是71筆
+- 買Milk和Frozen Food但不買Bakery goods的人是14筆
+- 後項(R的rhs) – Bakery goods
+- 前項(R的lhs) – Milk和Frozen Food
+- 實例– 85，即符合前項的筆數
+
+#### **1-2.轉換為Matrix**
+```{r message=FALSE, warning=FALSE}
+shopping=as.matrix(shopping) 
+```
+
+### **[Part 2].Apriori analysis**
+```{r message=FALSE, warning=FALSE}
+rule=apriori(shopping,parameter=list(supp=0.2,conf=0.5,maxlen=5),appearance=list(rhs="Alcohol",default="lhs"))
+inspect(head(sort(rule,by="support"),10))
+inspect(head(sort(rule,by="confidence"),10))
+```
+
+- 支援度–10.814 = 85/786，是指購買前項產品的客戶佔全部客戶的比例(R的support是指以下的規則支援度)
+- 信賴度 - 83.529 = 71/85，是指購買前項產品的客戶中也買後項產品的比例
+- 規則支援%(即支援度x信賴度)–9.033 = 10.814% x 83.529% 或= 71 / 786，指購買前項產品也買後項產品的客戶佔全部客戶的比例 
+- 提昇–1.948 = (71/85)/ (337/786)或 = 83.529% / 42.875%，指購買後項產品佔購買前項產品的比例除以購買後項產品佔全部客戶的比例 
